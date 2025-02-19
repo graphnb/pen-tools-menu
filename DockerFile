@@ -1,0 +1,38 @@
+# Use Kali Linux as base image
+FROM kalilinux/kali-rolling
+
+# Set environment variables
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Ensure the apt source is using a good mirror
+RUN echo "deb http://http.kali.org/kali kali-rolling main non-free contrib" > /etc/apt/sources.list
+
+# Update the system and install core dependencies
+RUN apt-get update && apt-get upgrade -y && apt-get install -y \
+    curl wget git nano sudo ruby postgresql \
+    build-essential libsqlite3-dev libpcap-dev libpq-dev \
+    gnupg2 lsb-release unzip perl libssl-dev libpcap-dev \
+    nikto beef wifite aircrack-ng kismet nmap \
+    netcat-openbsd masscan metasploit-framework \
+    libreadline-dev libncurses5-dev zlib1g-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install PowerShell Empire (Updated Repository)
+#RUN git clone https://github.com/BC-SECURITY/Empire.git /opt/pentest-tools/empire \
+#    && cd /opt/pentest-tools/empire \
+#    && ./setup/install.sh
+
+# Set working directory
+WORKDIR /opt/pentest-tools
+
+# Copy the penetration testing menu script into the container
+COPY pen_test_menu.sh /opt/pentest-tools/pen_test_menu.sh
+
+# Give execute permissions to the script
+RUN chmod +x /opt/pentest-tools/pen_test_menu.sh
+
+# Expose necessary ports for tools that may need it
+EXPOSE 5432 5555 3000 4444
+
+# Set the entrypoint to the script
+ENTRYPOINT ["/opt/pentest-tools/pen_test_menu.sh"]
