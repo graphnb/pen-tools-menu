@@ -68,3 +68,11 @@ Feel free to star the repo and share it! 🚀
 
 ## ⚠️ Want to contribute?
 Create a new branch and a pull request.
+
+## Troubleshooting
+
+1. ERROR: failed to solve: failed to read dockerfile: open Dockerfile: no such file or directory
+```bash
+run the docker command with the file argument (-f Dockerfile location)
+example: docker build -t pentest-container -f ./DockerFile .
+```s
