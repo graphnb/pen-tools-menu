@@ -1,5 +1,22 @@
 #!/bin/bash
 
+# Function to check if the script is running inside Docker
+is_docker() {
+    if [ -f /proc/1/cgroup ] && grep -q docker /proc/1/cgroup; then
+        return 0  # Inside Docker
+    else
+        return 1  # Not in Docker
+    fi
+}
+
+# Function to check if running as root (for sudo cases)
+check_root() {
+    if ! is_docker && [ "$(id -u)" -ne 0 ]; then
+        echo "This tool requires elevated privileges. Please enter your password for sudo access if asked for."
+        sudo -v  # Refresh sudo credentials, if needed
+    fi
+}
+
 # Define tool locations (modify if needed)
 BEEF_PATH="/opt/pentest-tools/beef"
 EMPIRE_PATH="/opt/pentest-tools/empire"
@@ -31,17 +48,20 @@ while true; do
                 1)
                     read -p "Enter target (IP/Domain): " target
                     read -p "Enter Nmap arguments (e.g., -sS -A): " args
-                    nmap $args "$target"
+                    check_root
+                    sudo nmap $args "$target"
                     ;;
                 2)
                     read -p "Enter target IP range: " target
                     read -p "Enter rate (e.g., 1000): " rate
-                    masscan -p1-65535 "$target" --rate="$rate"
+                    check_root
+                    sudo masscan -p1-65535 "$target" --rate="$rate"
                     ;;
                 3)
                     read -p "Enter target URL: " target
                     read -p "Enter Nikto arguments (optional): " args
-                    nikto -h "$target" $args
+                    check_root
+                    sudo nikto -h "$target" $args
                     ;;
                 4)
                     read -p "Enter target IP: " target
@@ -67,8 +87,12 @@ while true; do
                     read -p "Enter Metasploit command (e.g., use exploit/multi/handler): " msf_cmd
                     msfconsole -q -x "$msf_cmd"
                     ;;
-                2) cd "$BEEF_PATH" && ./beef ;;
-                3) cd "$EMPIRE_PATH" && ./empire ;;
+                2) 
+                    check_root
+                    cd "$BEEF_PATH" && sudo ./beef ;;
+                3) 
+                    check_root
+                    cd "$EMPIRE_PATH" && sudo ./empire ;;
                 4) continue ;;
                 *) echo "Invalid choice" ;;
             esac
@@ -86,10 +110,15 @@ while true; do
                 1)
                     read -p "Enter capture file (.cap): " cap_file
                     read -p "Enter wordlist file: " wordlist
-                    aircrack-ng -w "$wordlist" "$cap_file"
+                    check_root
+                    sudo aircrack-ng -w "$wordlist" "$cap_file"
                     ;;
-                2) kismet ;;
-                3) wifite ;;
+                2) 
+                    check_root
+                    sudo kismet ;;
+                3) 
+                    check_root
+                    sudo wifite ;;
                 4) continue ;;
                 *) echo "Invalid choice" ;;
             esac
@@ -105,12 +134,12 @@ while true; do
             case $post_choice in
                 1)
                     read -p "Enter OpenVAS user (default: admin): " user
-                    gvmd --create-user "$user" --passwd admin
+                    sudo gvmd --create-user "$user" --passwd admin
                     ;;
                 2)
                     read -p "Enter network interface (e.g., eth0): " iface
                     read -p "Enter filter (optional, e.g., port 80): " filter
-                    sudo tcpdump -i "$iface" $filter
+                    tcpdump -i "$iface" $filter
                     ;;
                 3) continue ;;
                 *) echo "Invalid choice" ;;

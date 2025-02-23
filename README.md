@@ -47,7 +47,7 @@ chmod +x pen_test_menu.sh
 ### 🔹 **2. Run on Docker**
 ```bash
 docker build -t pentest-container .
-docker run --rm -it --network=host pentest-container
+docker run --rm -it --privileged pentest-container bash
 ```
 
 ## Example: Run Nmap scan with custom options:
