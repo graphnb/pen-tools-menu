@@ -75,4 +75,4 @@ Create a new branch and a pull request.
 ```bash
 run the docker command with the file argument (-f Dockerfile location)
 example: docker build -t pentest-container -f ./DockerFile .
-```s
+```
